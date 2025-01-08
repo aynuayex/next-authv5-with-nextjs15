@@ -1,6 +1,12 @@
 "use client";
 
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, {
+  Suspense,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import { BeatLoader } from "react-spinners";
 import { CardWrapper } from "./card-wrapper";
 import { useSearchParams } from "next/navigation";
@@ -8,13 +14,30 @@ import { newVerification } from "@/actions/new-verification";
 import { FormError } from "../form-error";
 import { FormSuccess } from "../form-success";
 
-const NewVerificationForm = () => {
-  const loadedOnceRef = useRef<boolean>(false);
-  const [error, setError] = useState<string | undefined>();
-  const [success, setSuccess] = useState<string | undefined>();
+const SearchParamsHandler = ({
+  setToken,
+}: {
+  setToken: (url: string | null) => void;
+}) => {
   const searchParams = useSearchParams();
 
-  const token = searchParams.get("token");
+  // Use `useEffect` to safely set states
+  useEffect(() => {
+    const token = searchParams.get("token");
+    console.log({ token });
+
+    setToken(token);
+  }, [searchParams, setToken]);
+
+  return null;
+};
+
+const NewVerificationForm = () => {
+  const loadedOnceRef = useRef<boolean>(false);
+  const [token, setToken] = useState<string | null>();
+  const [error, setError] = useState<string | undefined>();
+  const [success, setSuccess] = useState<string | undefined>();
+
   const onSubmit = useCallback(() => {
     if (success || error) return;
 
@@ -37,24 +60,28 @@ const NewVerificationForm = () => {
   }, [token, success, error]);
 
   useEffect(() => {
-    if (!loadedOnceRef.current) {
+    if (!loadedOnceRef.current && token !== undefined) {
       onSubmit();
       loadedOnceRef.current = true;
     }
-  }, [onSubmit]);
+  }, [onSubmit, token]);
 
   return (
-    <CardWrapper
-      headerLabel="Confirming your Verification"
-      backButtonHref="/auth/login"
-      backButtonLabel="Back to login"
-    >
-      <div className="w-full flex items-center justify-center">
-        {!success && !error && <BeatLoader />}
-        <FormSuccess message={success} />
-        {!success && <FormError message={error} />}
-      </div>
-    </CardWrapper>
+    <Suspense fallback={<div>Loading...</div>}>
+      {/* Pass the setters to SearchParamsHandler */}
+      <SearchParamsHandler setToken={setToken} />
+      <CardWrapper
+        headerLabel="Confirming your Verification"
+        backButtonHref="/auth/login"
+        backButtonLabel="Back to login"
+      >
+        <div className="w-full flex items-center justify-center">
+          {!success && !error && <BeatLoader />}
+          <FormSuccess message={success} />
+          {!success && <FormError message={error} />}
+        </div>
+      </CardWrapper>
+    </Suspense>
   );
 };
 
