@@ -24,7 +24,6 @@ const SearchParamsHandler = ({
   // Use `useEffect` to safely set states
   useEffect(() => {
     const token = searchParams.get("token");
-    console.log({ token });
 
     setToken(token);
   }, [searchParams, setToken]);

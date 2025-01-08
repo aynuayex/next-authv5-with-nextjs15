@@ -46,10 +46,6 @@ export const NewPasswordForm = () => {
   const [token, setToken] = useState<string | null>();
   const [isPending, startTransition] = useTransition();
 
-  // const searchParams = useSearchParams();
-  // const token = searchParams.get("token");
-  console.log(token);
-
   const form = useForm<NewPasswordSchemaType>({
     resolver: zodResolver(NewPasswordSchema),
     defaultValues: {
